@@ -1,0 +1,86 @@
+version: '3.1'
+services:
+  traefik:
+      # The official v2 Traefik docker image
+    # image: traefik:v2.7
+    image: "traefik:latest"
+    container_name: "traefik-service"
+      # Enables the web UI and tells Traefik to listen to docker
+    command:
+      - "--log=true"
+      - "--log.level=ERROR"
+      - "--api"
+      - "--api.debug"
+      - "--api.insecure"
+      - "--api.dashboard"
+      - "--providers.docker"
+      - "--entrypoints.web.address=:80"
+      - "--entryPoints.traefik.address=:8080"
+      - "--entrypoints.websecure.address=:443"
+      # TLS certificate
+      - "--certificatesresolvers.le.acme.email=ridha.bouazizi1@esprit.tn"
+      - "--certificatesresolvers.le.acme.storage=/traefik/acme.json"
+      - "--certificatesresolvers.le.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.le.acme.httpchallenge=true"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+      
+    ports:
+      # The HTTPS port
+      - "443:443"
+      # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+      
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "../traefik:/traefik"
+    labels:
+      # dashboard access
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.ridha-bouazizi.live`)"
+      - "traefik.http.routers.traefik.middlewares=traefik_auth"
+      - "traefik.http.middlewares.traefik_auth.basicauth.users=admin:$$2y$$05$$dUEhUJWJOqgSMmoCf5QnB./GOa1sNxFiA48NAQN8cLirTB9QopXoO"
+      # - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=le"
+  whoami:
+    image: "traefik/whoami"
+    container_name: "whoami-service"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.ridha-bouazizi.live`)"
+      - "traefik.http.routers.whoami.entrypoints=websecure"
+      - "traefik.http.routers.whoami.tls.certresolver=le"
+      - "traefik.http.routers.whoami.middlewares=whoami_auth"
+      - "traefik.http.middlewares.whoami_auth.basicauth.users=admin:$$2y$$05$$dUEhUJWJOqgSMmoCf5QnB./GOa1sNxFiA48NAQN8cLirTB9QopXoO"
+  portainer:
+    container_name: "portainer-service"
+    image: portainer/portainer-ce:latest
+    command: -H unix:///var/run/docker.sock
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    labels:
+      # Frontend
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`portainer.ridha-bouazizi.live`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.services.frontend.loadbalancer.server.port=9000"
+      - "traefik.http.routers.frontend.service=frontend"
+      - "traefik.http.routers.frontend.tls.certresolver=le"
+
+      # Edge
+      - "traefik.http.routers.edge.rule=Host(`edge.ridha-bouazizi.live`)"
+      - "traefik.http.routers.edge.entrypoints=websecure"
+      - "traefik.http.services.edge.loadbalancer.server.port=8000"
+      - "traefik.http.routers.edge.service=edge"
+      - "traefik.http.routers.edge.tls.certresolver=le"
+      - "traefik.http.routers.whoami.middlewares=portainer_auth"
+      - "traefik.http.middlewares.portainer_auth.basicauth.users=admin:$$2y$$05$$dUEhUJWJOqgSMmoCf5QnB./GOa1sNxFiA48NAQN8cLirTB9QopXoO"
+volumes:
+  portainer_data:
+  traefik:
+    external: true

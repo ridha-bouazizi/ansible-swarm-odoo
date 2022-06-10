@@ -1,0 +1,14 @@
+- name: Create a volume for traefik
+  docker_volume:
+    name: "traefik"
+
+- name: copy docker-compose.yml
+  copy:
+    src: "{{ role_path }}/files/"
+    dest: workspace
+    mode: a+rwx
+
+- name: deploy docker-compose stack
+  docker_compose:
+    project_src: workspace/utilityStack-deployment
+    state: present
