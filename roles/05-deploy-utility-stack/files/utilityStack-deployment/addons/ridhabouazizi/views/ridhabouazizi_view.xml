@@ -1,0 +1,44 @@
+<openerp>
+	<data>
+		
+		<record id="ridhabouazizi_form" model="ir.ui.view">
+            <field name="name">ridhabouazizi.form</field>
+            <field name="model">ridhabouazizi.ridhabouazizi</field>
+            <field name="arch" type="xml">
+                <form string="tree_string">
+                    <sheet>
+                    	<group>
+                            <field name="name" string="name"/>
+                            <field name="lastname" string="lastname"/>
+                            <field name="address" string="address"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="ridhabouazizi_tree" model="ir.ui.view">
+            <field name="name">ridhabouazizi.tree</field>
+            <field name="model">ridhabouazizi.ridhabouazizi</field>
+            <field name="arch" type="xml">
+                <tree string="tree_string">
+                    <field name="name" string="name"/>
+                    <field name="lastname" string="lastname"/>
+                    <field name="address" string="address"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="ridhabouazizi_action" model="ir.actions.act_window">
+            <field name="name">ridhabouazizi</field>
+            <field name="res_model">ridhabouazizi.ridhabouazizi</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+		<menuitem id="master_root" name="Data Master"/>
+        <menuitem id="data_holder" name="Data Master" parent="master_root"/>
+        <menuitem id="ridhabouazizi_menu" name="Data ridhabouazizi" action="ridhabouazizi_action" parent="data_holder"/>
+
+	</data>
+</openerp>

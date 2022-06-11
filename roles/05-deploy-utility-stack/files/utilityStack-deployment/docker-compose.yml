@@ -1,5 +1,12 @@
 version: '3.1'
 services:
+  
+  #Ingress controller
+  ###########################################
+  ##                                       ##
+  ##                 visit:                ##
+  ##  https://traefik.ridha-bouazizi.live  ##
+  ###########################################
   traefik:
       # The official v2 Traefik docker image
     # image: traefik:v2.7
@@ -41,10 +48,22 @@ services:
       - "traefik.http.routers.traefik.service=api@internal"
       - "traefik.http.routers.traefik.rule=Host(`traefik.ridha-bouazizi.live`)"
       - "traefik.http.routers.traefik.middlewares=traefik_auth"
-      - "traefik.http.middlewares.traefik_auth.basicauth.users=admin:$$2y$$05$$dUEhUJWJOqgSMmoCf5QnB./GOa1sNxFiA48NAQN8cLirTB9QopXoO"
-      # - "traefik.http.services.traefik.loadbalancer.server.port=8080"
       - "traefik.http.routers.traefik.entrypoints=websecure"
       - "traefik.http.routers.traefik.tls.certresolver=le"
+      - "traefik.http.middlewares.traefik_auth.basicauth.users=admin:$$2y$$05$$dUEhUJWJOqgSMmoCf5QnB./GOa1sNxFiA48NAQN8cLirTB9QopXoO"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+
+      #Global redirects to https
+      - "traefik.http.routers.redirs.rule=hostregexp(`{host:.+}`)"
+      - "traefik.http.routers.redirs.entrypoints=web"
+      - "traefik.http.routers.redirs.middlewares=redirect-to-https"
+  
+  #Ingress controller test service
+  ###########################################
+  ##                                       ##
+  ##                 visit:                ##
+  ##  https://whoami.ridha-bouazizi.live   ##
+  ###########################################
   whoami:
     image: "traefik/whoami"
     container_name: "whoami-service"
@@ -55,6 +74,13 @@ services:
       - "traefik.http.routers.whoami.tls.certresolver=le"
       - "traefik.http.routers.whoami.middlewares=whoami_auth"
       - "traefik.http.middlewares.whoami_auth.basicauth.users=admin:$$2y$$05$$dUEhUJWJOqgSMmoCf5QnB./GOa1sNxFiA48NAQN8cLirTB9QopXoO"
+  
+  #Container management service
+  ###########################################
+  ##                                       ##
+  ##                 visit:                ##
+  ## https://portainer.ridha-bouazizi.live ##
+  ###########################################
   portainer:
     container_name: "portainer-service"
     image: portainer/portainer-ce:latest
@@ -80,7 +106,70 @@ services:
       - "traefik.http.routers.edge.tls.certresolver=le"
       - "traefik.http.routers.whoami.middlewares=portainer_auth"
       - "traefik.http.middlewares.portainer_auth.basicauth.users=admin:$$2y$$05$$dUEhUJWJOqgSMmoCf5QnB./GOa1sNxFiA48NAQN8cLirTB9QopXoO"
+
+  #Odoo deployment service
+  ###########################################
+  ##                                       ##
+  ##                 visit:                ##
+  ##   https://odoo.ridha-bouazizi.live    ##
+  ###########################################
+  odoo:
+    container_name: "odoo-service"
+    build:
+            context: .
+            dockerfile: Dockerfile
+    depends_on:
+      - db
+    #ports:
+      #- "8069:8069"
+    restart: always
+    labels:
+      - "traefik.http.routers.odoo.rule=Host(`odoo.ridha-bouazizi.live`)"
+      - "traefik.http.routers.odoo.middlewares=odoo_auth"
+      - "traefik.http.routers.odoo.tls.certresolver=le"
+      - "traefik.http.routers.odoo.entrypoints=websecure"
+      - "traefik.http.middlewares.odoo_auth.basicauth.users=admin:$$2y$$05$$dUEhUJWJOqgSMmoCf5QnB./GOa1sNxFiA48NAQN8cLirTB9QopXoO"
+    volumes:
+      - ./addons:/mnt/extra-addons:rw
+      - ./config:/etc/odoo
+      - odoo-web-data:/var/lib/odoo
+  
+  #Database deployment service
+  ###########################################
+  ##                                       ##
+  ##     postgreSQL database for odoo      ##
+  ##                                       ##
+  ###########################################
+  db:
+    container_name: odoo_db
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
+      - odoo-db-data:/var/lib/postgresql/data/pgdata
+
+  jenkins:
+    container_name: jenkins
+    image: jenkins/jenkins:lts
+    privileged: true
+    user: root
+    ports:
+      - 8081:8080
+      - 50000:50000
+    labels:
+      - "traefik.http.routers.jenkins.rule=Host(`jenkins.ridha-bouazizi.live`)"
+      - "traefik.http.routers.jenkins.middlewares=jenkins_auth"
+      - "traefik.http.routers.jenkins.tls.certresolver=le"
+      - "traefik.http.routers.jenkins.entrypoints=websecure"
+      - "traefik.http.middlewares.jenkins_auth.basicauth.users=admin:$$2y$$05$$dUEhUJWJOqgSMmoCf5QnB./GOa1sNxFiA48NAQN8cLirTB9QopXoO"
+    volumes:
+      - ../jenkins_configuration:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
 volumes:
+  odoo-db-data:
+  odoo-web-data:
+    external: true
   portainer_data:
   traefik:
     external: true

@@ -2,6 +2,10 @@
   docker_volume:
     name: "traefik"
 
+- name: Create a volume for traefik
+  docker_volume:
+    name: "odoo-web-data"
+
 - name: copy docker-compose.yml
   copy:
     src: "{{ role_path }}/files/"
