@@ -1,0 +1,11 @@
+- name: Get jenkins initial password
+  become: yes
+  become_user: root
+  shell: cat /home/ubuntu/workspace/jenkins_configuration/secrets/initialAdminPassword
+  register: jenkins_creds
+
+
+- name: Copy jenkins initial password.
+  become_user: ridha
+  become: yes
+  local_action: copy content="{{ jenkins_creds.stdout_lines[0] }}" dest="./jenkins_creds" mode=0777
