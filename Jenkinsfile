@@ -9,10 +9,13 @@ pipeline {
             }
         }
         stage('SonarQube analysis') {
-            def scannerHome = tool 'SonarScanner 4.0';
-            withSonarQubeEnv('My SonarQube Server') {
-            sh "${scannerHome}/bin/sonar-scanner"
+            steps{
+                def scannerHome = tool 'SonarScanner 4.0';
+                withSonarQubeEnv('My SonarQube Server') {
+                    sh "${scannerHome}/bin/sonar-scanner"
+                }
             }
+            
         }
         // stage ('testsonar - Build') {
         //         withEnv(["JAVA_HOME=${ tool '"+JDK+"' }", "PATH=${env.JAVA_HOME}/bin"]) {
