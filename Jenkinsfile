@@ -17,7 +17,7 @@ pipeline {
                     sh "${scannerHome}/bin/sonar-scanner \
                     -Dsonar.projectKey=odooInspect \
                     -Dsonar.sources=. \
-                    -Dsonar.host.url=https://sonar.ridha-bouazizi.live \
+                    -Dsonar.host.url=http://172.31.95.121:9000 \
                     -Dsonar.login=6ac0526fbb81ed5c4e832824f5df114df2409759"
                     }
                 }
