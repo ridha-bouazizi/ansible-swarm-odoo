@@ -14,7 +14,6 @@ pipeline {
                 script{
                     def scannerHome = tool 'sonarScanner';
                     withSonarQubeEnv('sonarServer') {
-                    sh "cd ./roles/05-deploy-utility-stack/files/utilityStack-deployment/addons"
                     sh 'ls'
                     sh "${scannerHome}/bin/sonar-scanner \
                     -Dsonar.projectKey=odooInspect \
@@ -22,7 +21,7 @@ pipeline {
                     -Dsonar.sourceEncoding=UTF-8 \
                     -Dsonar.python.xunit.reportPath=nosetests.xml \
                     -Dsonar.python.coverage.reportPath=coverage.xml \
-                    -Dsonar.sources=./roles/05-deploy-utility-stack/files/utilityStack-deployment/addons \
+                    -Dsonar.sources=./addons \
                     -Dsonar.host.url=http://172.31.95.121:9000 \
                     -Dsonar.login=6ac0526fbb81ed5c4e832824f5df114df2409759"
                     sh """
@@ -43,7 +42,7 @@ pipeline {
         stage('Copy plugins') {
             steps {
                 git credentialsId: 'github', url: 'https://github.com/ridha-bouazizi/ansible-swarm-odoo.git'
-                sh 'ls'
+                sh 'cp -r ./addons/* /addons/'
             }
         }
     }
