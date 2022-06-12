@@ -5,7 +5,7 @@ pipeline {
         stage('Clone deps') {
             steps {
                 git credentialsId: 'github', url: 'https://github.com/ridha-bouazizi/ansible-swarm-odoo.git'
-                sh 'ls'
+                
             }
         }
         stage('SonarQube analysis') {
@@ -14,6 +14,8 @@ pipeline {
                 script{
                     def scannerHome = tool 'sonarScanner';
                     withSonarQubeEnv('sonarServer') {
+                    sh "cd ./roles/05-deploy-utility-stack/files/utilityStack-deployment/addons"
+                    sh 'ls'
                     sh "${scannerHome}/bin/sonar-scanner \
                     -Dsonar.projectKey=odooInspect \
                     -Dsonar.sources=. \
