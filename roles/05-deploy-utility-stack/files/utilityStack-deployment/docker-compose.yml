@@ -44,7 +44,12 @@ services:
       # TLS certificate
       - "--certificatesresolvers.le.acme.email=ridha.bouazizi1@esprit.tn"
       - "--certificatesresolvers.le.acme.storage=/traefik/acme.json"
-      - "--certificatesresolvers.le.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      
+      # Let's encrypt production server
+      - "--certificatesresolvers.le.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+      
+      # Let's encrypt staging server (for testing purposes only)
+      # - "--certificatesresolvers.le.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
       - "--certificatesresolvers.le.acme.httpchallenge=true"
       - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
       
