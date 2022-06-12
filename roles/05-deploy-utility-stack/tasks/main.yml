@@ -14,6 +14,30 @@
   docker_volume:
     name: "portainer-data"
 
+- name: Create a volume for sonarqube_conf
+  docker_volume:
+    name: "sonarqube-conf"
+
+- name: Create a volume for sonarqube_extensions
+  docker_volume:
+    name: "sonarqube-extensions"
+
+- name: Create a volume for sonarqube_plugins
+  docker_volume:
+    name: "sonarqube-plugins"
+
+- name: Create a volume for sonarqube_logs
+  docker_volume:
+    name: "sonarqube-logs"
+
+- name: Create a volume for sonarqube_data
+  docker_volume:
+    name: "sonarqube-data"
+
+- name: Create a volume for 
+  docker_volume:
+    name: "sonarqube-db"
+
 - name: copy workspace contents onto the server
   copy:
     src: "{{ role_path }}/files/"

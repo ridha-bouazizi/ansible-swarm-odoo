@@ -274,12 +274,18 @@ services:
     volumes:
       - sonarqube_db:/var/lib/postgresql/data
 volumes:
-  sonarqube_conf:
-  sonarqube_extensions:
-  sonarqube_plugins:
-  sonarqube_logs:
-  sonarqube_data:
-  sonarqube_db:
+  sonarqube-conf:
+    external: true
+  sonarqube-extensions:
+    external: true
+  sonarqube-plugins:
+    external: true
+  sonarqube-logs:
+    external: true
+  sonarqube-data:
+    external: true
+  sonarqube-db:
+    external: true
   odoo-db-data:
     external: true
   odoo-web-data:
