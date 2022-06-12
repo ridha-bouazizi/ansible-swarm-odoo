@@ -14,7 +14,11 @@ pipeline {
                 script{
                     def scannerHome = tool 'sonarScanner';
                     withSonarQubeEnv('sonarServer') {
-                    sh "${scannerHome}/bin/sonar-scanner"
+                    sh "${scannerHome}/bin/sonar-scanner \
+                    -Dsonar.projectKey=odooInspect \
+                    -Dsonar.sources=. \
+                    -Dsonar.host.url=https://sonar.ridha-bouazizi.live \
+                    -Dsonar.login=6ac0526fbb81ed5c4e832824f5df114df2409759"
                     }
                 }
             }
