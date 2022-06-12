@@ -19,19 +19,19 @@
 #   roles:
 #     - 03-install-docker
 
-# - name: take down utility stack
-#   hosts: masters
-#   remote_user: ubuntu
-#   become: yes
-#   roles:
-#     - 04-take-it-down(us)
+- name: take down utility stack
+  hosts: masters
+  remote_user: ubuntu
+  become: yes
+  roles:
+    - 04-take-it-down(us)
 
-# - name: deploy utility stack
-#   hosts: masters
-#   remote_user: ubuntu
-#   become: yes
-#   roles:
-#     - 05-deploy-utility-stack
+- name: deploy utility stack
+  hosts: masters
+  remote_user: ubuntu
+  become: yes
+  roles:
+    - 05-deploy-utility-stack
 
 - name: Get jenkins credentials
   hosts: masters

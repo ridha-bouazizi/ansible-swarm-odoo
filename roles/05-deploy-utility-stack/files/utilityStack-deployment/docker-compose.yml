@@ -145,7 +145,7 @@ services:
   ###########################################
   odoo:
     build:
-            context: .
+            context: ./odoo-image
             dockerfile: Dockerfile
     depends_on:
       - db
@@ -188,7 +188,10 @@ services:
   ##                                       ##
   ###########################################
   jenkins:
-    image: jenkins/jenkins:lts
+    # image: jenkins/jenkins:lts
+    build:
+            context: ./jenkins-image
+            dockerfile: Dockerfile
     privileged: true
     user: root
     ports:
