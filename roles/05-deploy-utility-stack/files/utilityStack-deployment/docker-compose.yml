@@ -51,7 +51,7 @@ services:
       # Let's encrypt staging server (for testing purposes only)
       # - "--certificatesresolvers.le.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
       - "--certificatesresolvers.le.acme.httpchallenge=true"
-      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=websecure"
       
     ports:
 

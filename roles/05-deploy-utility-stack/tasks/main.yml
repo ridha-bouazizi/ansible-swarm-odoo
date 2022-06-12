@@ -23,7 +23,9 @@
 - name: raise memory limit
   become: yes
   become_user: root
-  shell: sysctl -w vm.max_map_count=262144
+  shell: |
+          echo "vm.max_map_count=262144" >> /etc/sysctl.conf
+          sysctl -w vm.max_map_count=262144
 
 - name: deploy docker-compose stack
   docker_compose:
