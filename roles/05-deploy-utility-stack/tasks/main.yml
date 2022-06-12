@@ -2,15 +2,28 @@
   docker_volume:
     name: "traefik"
 
-- name: Create a volume for traefik
+- name: Create a volume for odoo web data
   docker_volume:
     name: "odoo-web-data"
 
-- name: copy docker-compose.yml
+- name: Create a volume for odoo db data
+  docker_volume:
+    name: "odoo-db-data"
+
+- name: Create a volume for portainer data
+  docker_volume:
+    name: "portainer-data"
+
+- name: copy workspace contents onto the server
   copy:
     src: "{{ role_path }}/files/"
     dest: workspace
     mode: a+rwx
+
+- name: raise memory limit
+  become: yes
+  become_user: root
+  shell: sysctl -w vm.max_map_count=262144
 
 - name: deploy docker-compose stack
   docker_compose:
