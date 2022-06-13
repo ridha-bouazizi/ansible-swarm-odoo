@@ -71,3 +71,4 @@ email-ext
 docker-java-api
 docker-plugin
 sonar
+Declarative Pipeline Migration Assistant
