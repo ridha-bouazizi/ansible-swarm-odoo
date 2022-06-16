@@ -34,7 +34,7 @@
   docker_volume:
     name: "sonarqube-data"
 
-- name: Create a volume for 
+- name: Create a volume for sonarqube database
   docker_volume:
     name: "sonarqube-db"
 
