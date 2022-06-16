@@ -1,23 +1,23 @@
-# - name: Configure root access for user ubuntu
-#   hosts: masters
-#   remote_user: ubuntu
-#   become: yes
-#   roles:
-#     - users
+- name: Configure root access for user ubuntu
+  hosts: "masters"
+  remote_user: ubuntu
+  become: yes
+  roles:
+    - 01-users
 
-# - name: Install prerequisites
-#   hosts: masters
-#   remote_user: ubuntu
-#   become: yes
-#   roles:
-#     - 02-install-prerequisites
+- name: Install prerequisites
+  hosts: "masters"
+  remote_user: ubuntu
+  become: yes
+  roles:
+    - 02-install-prerequisites
 
-# - name: install docker
-#   hosts: masters
-#   remote_user: ubuntu
-#   become: yes
-#   roles:
-#     - 03-install-docker
+- name: install docker
+  hosts: "masters"
+  remote_user: ubuntu
+  become: yes
+  roles:
+    - 03-install-docker
 
 - name: take down utility stack
   hosts: masters

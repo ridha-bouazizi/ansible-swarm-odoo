@@ -1,0 +1,107 @@
+# - name: Create a volume for traefik
+#   docker_volume:
+#     name: "traefik"
+
+# - name: Create a volume for odoo web data
+#   docker_volume:
+#     name: "odoo-web-data"
+
+# - name: Create a volume for odoo database data
+#   docker_volume:
+#     name: "odoo-db-data"
+
+# - name: Create a volume for portainer data
+#   docker_volume:
+#     name: "portainer-data"
+
+# - name: Create a volume for sonarqube config
+#   docker_volume:
+#     name: "sonarqube-conf"
+
+# - name: Create a volume for sonarqube extensions
+#   docker_volume:
+#     name: "sonarqube-extensions"
+
+# - name: Create a volume for sonarqube plugins
+#   docker_volume:
+#     name: "sonarqube-plugins"
+
+# - name: Create a volume for sonarqube logs
+#   docker_volume:
+#     name: "sonarqube-logs"
+
+# - name: Create a volume for sonarqube data
+#   docker_volume:
+#     name: "sonarqube-data"
+
+# - name: Create a volume for sonarqube database
+#   docker_volume:
+#     name: "sonarqube-db"
+
+# - name: copy workspace contents onto the server
+#   copy:
+#     src: "{{ role_path }}/files/"
+#     dest: workspace
+#     mode: a+rwx
+
+# - name: Log into registry and force re-authorization
+#   community.docker.docker_login:
+#     registry_url: https://index.docker.io/v1/
+#     username: r08041994b
+#     password: _q3+,*T_AJ_-bYx
+#     reauthorize: yes
+
+# - name: Build custom odoo image
+#   become: yes
+#   become_user: root
+#   community.docker.docker_image:
+#     build:
+#       path: "workspace/utilityStack-deployment/odoo-image/"
+#     name: custom/odoo:latest
+#     source: build
+
+# - name: Tag and push to docker hub
+#   become: yes
+#   become_user: root
+#   community.docker.docker_image:
+#     name: custom/odoo:latest
+#     repository: r08041994b/custom-odoo:latest
+#     push: yes
+#     source: local
+
+# - name: Build custom jenkins image
+#   become: yes
+#   become_user: root
+#   community.docker.docker_image:
+#     build:
+#       path: "workspace/utilityStack-deployment/jenkins-image/"
+#     name: custom/jenkins:latest
+#     source: build
+
+# - name: Tag and push to docker hub
+#   become: yes
+#   become_user: root
+#   community.docker.docker_image:
+#     name: custom/jenkins:latest
+#     repository: r08041994b/custom-jenkins:latest
+#     push: yes
+#     source: local
+
+# - name: raise memory limit
+#   become: yes
+#   become_user: root
+#   shell: |
+#           echo "vm.max_map_count=262144" >> /etc/sysctl.conf
+#           sysctl -w vm.max_map_count=262144
+
+- name: Remove stack
+  community.docker.docker_stack:
+    name: utilityStack
+    state: absent
+
+- name: Deploy stack from a compose file
+  docker_stack:
+    state: present
+    name: utilityStack
+    compose:
+      - workspace/utilityStack-deployment/docker-compose.yml

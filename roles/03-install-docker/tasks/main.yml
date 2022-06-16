@@ -1,43 +1,58 @@
-    # - name: Add Docker GPG apt Key
-    #   apt_key:
-    #     url: https://download.docker.com/linux/ubuntu/gpg
-    #     state: present
+- name: Add Docker GPG apt Key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
 
-    # - name: Add Docker Repository
-    #   apt_repository:
-    #     repo: deb https://download.docker.com/linux/ubuntu focal stable
-    #     state: present
+- name: Add Docker Repository
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu focal stable
+    state: present
 
-    # - name: Update apt and install docker-ce
-    #   apt:
-    #     name: docker-ce
-    #     state: latest
-    #     update_cache: true
+- name: Update apt and install docker-ce
+  apt:
+    name: docker-ce
+    state: latest
+      update_cache: true
 
-    # - name: Update apt and install docker-ce-cli
-    #   apt:
-    #     name: docker-ce-cli
-    #     state: latest
-    #     update_cache: true
+- name: Update apt and install docker-ce-cli
+  apt:
+    name: docker-ce-cli
+    state: latest
+    update_cache: true
 
-    # - name: Update apt and install containerd
-    #   apt:
-    #     name: containerd.io
-    #     state: latest
-    #     update_cache: true
+- name: Update apt and install containerd
+  apt:
+    name: containerd.io
+    state: latest
+    update_cache: true
 
-    # - name: Update apt and install docker-compose
-    #   apt:
-    #     name: docker-compose
-    #     state: latest
-    #     update_cache: true
+- name: Update apt and install docker-compose
+  apt:
+    name: docker-compose
+    state: latest
+    update_cache: true
 
-    # - name: Update apt and install docker-compose plugin
-    #   apt:
-    #     name: docker-compose-plugin
-    #     state: latest
-    #     update_cache: true
+- name: Update apt and install docker-compose plugin
+  apt:
+    name: docker-compose-plugin
+    state: latest
+    update_cache: true
 
-    # - name: Install Docker Module for Python
-    #   pip:
-    #     name: docker
+- name: Install Docker Module for Python
+  become: yes
+  become_user: root
+  pip:
+      name: docker
+
+- name: Install jsondiff Module for Python
+  become: yes
+  become_user: root
+  pip:
+      name: jsondiff
+
+- name: raise memory limit
+  become: yes
+  become_user: root
+  shell: |
+          echo "vm.max_map_count=262144" >> /etc/sysctl.conf
+          sysctl -w vm.max_map_count=262144

@@ -1,0 +1,321 @@
+version: '3.1'
+services:
+  
+  #Ingress controller
+  ###########################################
+  ##                                       ##
+  ##                 visit:                ##
+  ##  https://traefik.ridha-bouazizi.live  ##
+  ###########################################
+  traefik:
+      # The official v2 Traefik docker image
+    # image: traefik:v2.7
+    image: "traefik:latest"
+      # Enables the web UI and tells Traefik to listen to docker
+    command:
+
+      - "--global.checkNewVersion=true"
+      - "--global.sendAnonymousUsage=false"
+      - "--providers.docker.swarmMode=true"
+      - "--providers.docker.constraints=Label(`traefik.constraint-label`, `traefik-public`)"
+
+      #Logging config
+      - "--log=true"
+      - "--log.level=ERROR"
+      - "--accesslog=true"
+      - "--ping=true"
+      - "--ping.entrypoint=ping"
+      - "--entryPoints.ping.address=:8082"
+      #Api config
+      - "--api"
+      - "--api.debug"
+      - "--api.insecure"
+      - "--api.dashboard"
+      
+      #Configure providers
+      - "--providers.docker"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+      
+      #Exposed entrypoints
+      - "--entrypoints.web.address=:80"
+      - "--entryPoints.traefik.address=:8081"
+      - "--entrypoints.websecure.address=:443"
+      
+      # TLS certificate
+      - "--certificatesresolvers.le.acme.email=ridha.bouazizi1@esprit.tn"
+      - "--certificatesresolvers.le.acme.storage=/traefik/acme.json"
+      
+      # Let's encrypt production server
+      - "--certificatesresolvers.le.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+
+      # Let's encrypt staging server (for testing purposes only)
+      # - "--certificatesresolvers.le.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.le.acme.httpchallenge=true"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=websecure"
+      
+    ports:
+
+      # The HTTPS port
+      - "443:443"
+      # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8081:8080"
+    deploy:
+      placement:
+        constraints:
+          # Make the traefik service run only on the node with this label
+          # as the node with it has the volume for the certificates
+          - node.labels.traefik-public.traefik == true
+      labels:
+      - "traefik.docker.network=traefik-public"
+      - "traefik.constraint-label=traefik-public"
+
+      # dashboard access
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.ridha-bouazizi.live`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=le"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+
+      #Authorisation middleware for traefik dashboard
+      - "traefik.http.routers.traefik.middlewares=traefik_auth"
+      - "traefik.http.middlewares.traefik_auth.basicauth.users=admin:$$2y$$05$$dUEhUJWJOqgSMmoCf5QnB./GOa1sNxFiA48NAQN8cLirTB9QopXoO"
+
+      #Global redirects to https
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.redirs.rule=hostregexp(`{host:.+}`)"
+      - "traefik.http.routers.redirs.entrypoints=web"
+      - "traefik.http.routers.redirs.middlewares=redirect-to-https"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+      #Storage of tls certtificate
+      - "traefik:/traefik"
+
+    networks:
+      - traefik-public
+  
+  #Ingress controller test service
+  ###########################################
+  ##                                       ##
+  ##                 visit:                ##
+  ##  https://whoami.ridha-bouazizi.live   ##
+  ###########################################
+  whoami:
+    image: "traefik/whoami"
+    deploy:
+      labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.ridha-bouazizi.live`)"
+      - "traefik.http.routers.whoami.entrypoints=websecure"
+      - "traefik.http.routers.whoami.tls.certresolver=le"
+      - "traefik.http.routers.whoami.middlewares=whoami_auth"
+      - "traefik.http.middlewares.whoami_auth.basicauth.users=admin:$$2y$$05$$dUEhUJWJOqgSMmoCf5QnB./GOa1sNxFiA48NAQN8cLirTB9QopXoO"
+    #traefik ingress controller configuration
+    networks:
+      - traefik-public
+  #Container management service
+  ###########################################
+  ##                                       ##
+  ##                 visit:                ##
+  ## https://portainer.ridha-bouazizi.live ##
+  ###########################################
+  portainer:
+    image: portainer/portainer-ce:latest
+    command: -H unix:///var/run/docker.sock
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer-data:/data
+    deploy:
+      labels:
+      # Frontend
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`portainer.ridha-bouazizi.live`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.services.frontend.loadbalancer.server.port=9000"
+      - "traefik.http.routers.frontend.service=frontend"
+      - "traefik.http.routers.frontend.tls.certresolver=le"
+
+      # Edge
+      - "traefik.http.routers.edge.rule=Host(`edge.ridha-bouazizi.live`)"
+      - "traefik.http.routers.edge.entrypoints=websecure"
+      - "traefik.http.services.edge.loadbalancer.server.port=8000"
+      - "traefik.http.routers.edge.service=edge"
+      - "traefik.http.routers.edge.tls.certresolver=le"
+      - "traefik.http.routers.whoami.middlewares=portainer_auth"
+      - "traefik.http.middlewares.portainer_auth.basicauth.users=admin:$$2y$$05$$dUEhUJWJOqgSMmoCf5QnB./GOa1sNxFiA48NAQN8cLirTB9QopXoO"
+
+    networks:
+      - traefik-public
+  #Odoo deployment service
+  ###########################################
+  ##                                       ##
+  ##                 visit:                ##
+  ##   https://odoo.ridha-bouazizi.live    ##
+  ###########################################
+  odoo:
+    image: r08041994b/custom-odoo:latest
+    depends_on:
+      - db
+    #ports:
+      #- "8069:8069"
+    restart: always
+
+    #traefik ingress controller configuration
+    deploy:
+      labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.odoo.rule=Host(`odoo.ridha-bouazizi.live`)"
+      - "traefik.http.routers.odoo.middlewares=odoo_auth"
+      - "traefik.http.routers.odoo.tls.certresolver=le"
+      - "traefik.http.routers.odoo.entrypoints=websecure"
+      - "traefik.http.middlewares.odoo_auth.basicauth.users=admin:$$2y$$05$$dUEhUJWJOqgSMmoCf5QnB./GOa1sNxFiA48NAQN8cLirTB9QopXoO"
+    volumes:
+      - ./addons:/mnt/extra-addons:rw
+      - ./config:/etc/odoo
+      - odoo-web-data:/var/lib/odoo
+
+    networks:
+      - traefik-public  
+  #Odoo database deployment service
+  ###########################################
+  ##                                       ##
+  ##     postgreSQL database for odoo      ##
+  ##                                       ##
+  ###########################################
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
+    # volumes:
+      - odoo-db-data:/var/lib/postgresql/data/pgdata
+
+    networks:
+      - traefik-public
+  #Jenkins deployment service
+  ###########################################
+  ##                                       ##
+  ##                 visit:                ##
+  ##  https://jenkins.ridha-bouazizi.live  ##
+  ##                                       ##
+  ###########################################
+  jenkins:
+    # image: jenkins/jenkins:lts
+    image: r08041994b/custom-jenkins:latest
+    privileged: true
+    user: root
+    ports:
+      - 8080:8080
+      - 50000:50000
+    deploy:
+      labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jenkins-service.rule=Host(`jenkins.ridha-bouazizi.live`)"
+      - "traefik.http.routers.jenkins-service.middlewares=jenkins_auth"
+      - "traefik.http.routers.jenkins-service.tls.certresolver=le"
+      - "traefik.http.routers.jenkins-service.entrypoints=websecure"
+      - "traefik.http.middlewares.jenkins_auth.basicauth.removeheader=true"
+      - "traefik.http.middlewares.jenkins_auth.basicauth.users=admin:$$2y$$05$$dUEhUJWJOqgSMmoCf5QnB./GOa1sNxFiA48NAQN8cLirTB9QopXoO"
+    volumes:
+      - ../jenkins_configuration:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./addons:/addons:rw
+
+    networks:
+      - traefik-public
+
+  #SonarQUBE deployment service
+  ###########################################
+  ##                                       ##
+  ##                 visit:                ##
+  ##   https://sonar.ridha-bouazizi.live   ##
+  ##                                       ##
+  ###########################################
+  sonarqube:
+    image: sonarqube:7.9-community
+    restart: always
+    ports:
+      - "9000:9000"
+    depends_on:
+      - traefik
+      - postgres
+    environment:
+      # sonarqube Connect postgresql To configure 
+      - "SONARQUBE_JDBC_USERNAME=sonar"
+      - "SONARQUBE_JDBC_PASSWORD=sonar"
+      - "SONARQUBE_JDBC_URL=jdbc:postgresql://postgres:5432/sonar"
+    volumes:
+      - sonarqube-conf:/opt/sonarqube/conf
+      - sonarqube-extensions:/opt/sonarqube/extensions
+      - sonarqube-logs:/opt/sonarqube/logs
+      - sonarqube-data:/opt/sonarqube/data
+    deploy:
+      labels:
+      - "traefik.enable=true"
+      # HTTPS Access portal 
+      - "traefik.http.routers.sonarqube.rule=Host(`sonar.ridha-bouazizi.live`)"
+      - "traefik.http.routers.sonarqube.entrypoints=websecure"
+      - "traefik.http.services.sonarqube.loadbalancer.server.port=9000"
+      - "traefik.http.routers.sonarqube.tls=true"
+      - "traefik.http.routers.sonarqube.tls.certresolver=le"
+      - "traefik.http.services.sonarqube.loadbalancer.passhostheader=true"
+      - "traefik.http.routers.sonarqube.middlewares=compresstraefik"
+      - "traefik.http.middlewares.compresstraefik.compress=true"
+      - "traefik.http.routers.sonarqube.middlewares=sonar_auth"
+      - "traefik.http.middlewares.sonar_auth.basicauth.removeheader=true"
+      - "traefik.http.middlewares.sonar_auth.basicauth.users=admin:$$2y$$05$$dUEhUJWJOqgSMmoCf5QnB./GOa1sNxFiA48NAQN8cLirTB9QopXoO"
+
+    networks:
+      - traefik-public
+  #SonarQUBE database deployment service
+  ###########################################
+  ##                                       ##
+  ##     postgreSQL database for sonar     ##
+  ##                                       ##
+  ###########################################  
+  postgres:
+    image: postgres:12
+    restart: always
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+      - POSTGRES_DB=sonar
+    ports:
+      - "5432:5432"
+    volumes:
+      - sonarqube-db:/var/lib/postgresql/data
+
+    networks:
+      - traefik-public
+volumes:
+  sonarqube-conf:
+    external: true
+  sonarqube-extensions:
+    external: true
+  sonarqube-plugins:
+    external: true
+  sonarqube-logs:
+    external: true
+  sonarqube-data:
+    external: true
+  sonarqube-db:
+    external: true
+  odoo-db-data:
+    external: true
+  odoo-web-data:
+    external: true
+  portainer-data:
+    external: true
+  traefik:
+    external: true
+
+networks:
+  traefik-public:
+    external: true

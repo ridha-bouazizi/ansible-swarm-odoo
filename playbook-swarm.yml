@@ -1,0 +1,49 @@
+# - name: Configure root access for user ubuntu
+#   hosts: "masters,workers"
+#   remote_user: ubuntu
+#   become: yes
+#   roles:
+#     - 01-users
+
+# - name: Install prerequisites
+#   hosts: "masters,workers"
+#   remote_user: ubuntu
+#   become: yes
+#   roles:
+#     - 02-install-prerequisites
+
+# - name: install docker
+#   hosts: "masters,workers"
+#   remote_user: ubuntu
+#   become: yes
+#   roles:
+#     - 03-install-docker
+
+# - name: initialize swarm
+#   hosts: masters
+#   remote_user: ubuntu
+#   become: yes
+#   roles:
+#     - 07-init-swarm-(opt)
+
+# - name: join workers to the swarm
+#   hosts: workers
+#   remote_user: ubuntu
+#   become: yes
+#   roles:
+#     - 08-add-nodes-(opt)
+
+# - name: take down utility stack
+#   hosts: masters
+#   remote_user: ubuntu
+#   become: yes
+#   roles:
+#     - 04-take-it-down(us)
+
+- name: deploy utility stack in swarm mode
+  hosts: masters
+  remote_user: ubuntu
+  become: yes
+  roles:
+    - 09-deploy-utility-stack-swarm
+
