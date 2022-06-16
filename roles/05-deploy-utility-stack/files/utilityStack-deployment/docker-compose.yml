@@ -179,6 +179,8 @@ services:
       - POSTGRES_PASSWORD=odoo
       - POSTGRES_USER=odoo
       - odoo-db-data:/var/lib/postgresql/data/pgdata
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data/
 
   #Jenkins deployment service
   ###########################################
