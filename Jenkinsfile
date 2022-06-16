@@ -16,14 +16,14 @@ pipeline {
                     withSonarQubeEnv('sonarServer') {
                     sh 'ls'
                     sh "${scannerHome}/bin/sonar-scanner \
-                    -Dsonar.projectKey=odooInspect \
+                    -Dsonar.projectKey=test \
                     -Dsonar.language=py \
                     -Dsonar.sourceEncoding=UTF-8 \
                     -Dsonar.python.xunit.reportPath=nosetests.xml \
                     -Dsonar.python.coverage.reportPath=coverage.xml \
                     -Dsonar.sources=./addons \
                     -Dsonar.host.url=http://172.31.95.121:9000 \
-                    -Dsonar.login=6ac0526fbb81ed5c4e832824f5df114df2409759"
+                    -Dsonar.login=3c6741dbcf1a45078276d9579462de95c64d2a69"
                     sh """
                     #!/bin/bash
                     set -e
